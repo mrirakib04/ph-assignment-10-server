@@ -93,6 +93,49 @@ async function run() {
         });
       }
     });
+    // GET user activities
+    app.get("/my-activities/:userId", async (req, res) => {
+      try {
+        const { userId } = req.params;
+
+        const pipeline = [
+          { $match: { userId } },
+          {
+            $lookup: {
+              from: "challenges",
+              localField: "challengeId",
+              foreignField: "_id",
+              as: "challengeDetails",
+            },
+          },
+          { $unwind: "$challengeDetails" },
+          {
+            $project: {
+              _id: 1,
+              status: 1,
+              progress: 1,
+              joinDate: 1,
+              "challengeDetails.title": 1,
+              "challengeDetails.category": 1,
+              "challengeDetails.imageUrl": 1,
+              "challengeDetails.description": 1,
+            },
+          },
+        ];
+
+        const userActivities = await userChallengesCollection
+          .aggregate(pipeline)
+          .toArray();
+
+        res.send({
+          success: true,
+          count: userActivities.length,
+          data: userActivities,
+        });
+      } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+      }
+    });
 
     // POSTING
     // Challenges
