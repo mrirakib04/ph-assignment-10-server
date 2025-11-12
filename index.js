@@ -42,6 +42,58 @@ async function run() {
     // Connections
     const database = client.db(process.env.DB_NAME);
     const usersCollection = database.collection("users");
+    const challengesCollection = database.collection("challenges");
+
+    // POSTING
+    // Challenges
+    app.post("/challenges", async (req, res) => {
+      try {
+        const {
+          title,
+          category,
+          description,
+          duration,
+          target,
+          participants,
+          impactMetric,
+          createdBy,
+          startDate,
+          endDate,
+          imageUrl,
+        } = req.body;
+
+        const newChallenge = {
+          title,
+          category,
+          description,
+          duration: parseInt(duration),
+          target,
+          participants: participants || 0,
+          impactMetric,
+          createdBy,
+          startDate,
+          endDate,
+          imageUrl,
+          createdDate: new Date().toISOString(),
+          status: "active",
+        };
+
+        const result = await challengesCollection.insertOne(newChallenge);
+
+        res.send({
+          success: true,
+          message: "Challenge added successfully",
+          insertedId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("Error adding challenge:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to add challenge",
+          error: error.message,
+        });
+      }
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
