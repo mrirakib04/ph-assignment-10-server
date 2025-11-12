@@ -260,6 +260,30 @@ async function run() {
       }
     });
 
+    // UPDATING
+    // Update user's progress/status
+    app.patch("/user-challenges/:userId/:challengeId", async (req, res) => {
+      try {
+        const { userId, challengeId } = req.params;
+        const { status, progress } = req.body;
+
+        const result = await userChallengesCollection.updateOne(
+          { userId, _id: new ObjectId(challengeId) },
+          { $set: { status, progress, updateDate: new Date() } }
+        );
+
+        if (result.matchedCount === 0)
+          return res
+            .status(404)
+            .json({ success: false, message: "User challenge not found" });
+
+        res.json({ success: true, message: "Progress updated successfully" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+      }
+    });
+
     // DELETING
     // Delete challenge
     app.delete("/delete/challenge/:id", async (req, res) => {
