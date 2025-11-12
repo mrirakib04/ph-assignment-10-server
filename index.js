@@ -43,6 +43,7 @@ async function run() {
     const database = client.db(process.env.DB_NAME);
     const usersCollection = database.collection("users");
     const challengesCollection = database.collection("challenges");
+    const userChallengesCollection = database.collection("userChallenges");
 
     // READING
     // Get all challenges
@@ -67,6 +68,27 @@ async function run() {
         res.status(500).send({
           success: false,
           message: "Failed to fetch challenges",
+          error: error.message,
+        });
+      }
+    });
+    // GET Challenge Details
+    app.get("/challenges/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const challenge = await challengesCollection.findOne({
+          _id: new ObjectId(id),
+        });
+        if (!challenge)
+          return res
+            .status(404)
+            .json({ success: false, message: "Challenge not found" });
+        res.json({ success: true, data: challenge });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({
+          success: false,
+          message: "Server error",
           error: error.message,
         });
       }
