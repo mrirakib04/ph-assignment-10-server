@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 dotenv.config();
@@ -118,6 +118,37 @@ async function run() {
         res.status(500).send({
           success: false,
           message: "Failed to add challenge",
+          error: error.message,
+        });
+      }
+    });
+
+    // DELETING
+    // Delete challenge
+    app.delete("/delete/challenge/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const result = await challengesCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          return res.status(404).send({
+            success: false,
+            message: "Challenge not found",
+          });
+        }
+
+        res.send({
+          success: true,
+          message: "Challenge deleted successfully",
+        });
+      } catch (error) {
+        console.error("Error deleting challenge:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to delete challenge",
           error: error.message,
         });
       }
