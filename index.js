@@ -44,6 +44,34 @@ async function run() {
     const usersCollection = database.collection("users");
     const challengesCollection = database.collection("challenges");
 
+    // READING
+    // Get all challenges
+    app.get("/challenges", async (req, res) => {
+      try {
+        const { search } = req.query;
+
+        const query = {};
+        if (search) {
+          query.title = { $regex: search, $options: "i" };
+        }
+
+        const challenges = await challengesCollection.find(query).toArray();
+
+        res.send({
+          success: true,
+          count: challenges.length,
+          data: challenges,
+        });
+      } catch (error) {
+        console.error("Error fetching challenges:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch challenges",
+          error: error.message,
+        });
+      }
+    });
+
     // POSTING
     // Challenges
     app.post("/challenges", async (req, res) => {
