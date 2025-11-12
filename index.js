@@ -115,6 +115,7 @@ async function run() {
               status: 1,
               progress: 1,
               joinDate: 1,
+              updateDate: 1,
               "challengeDetails.title": 1,
               "challengeDetails.category": 1,
               "challengeDetails.imageUrl": 1,
@@ -134,6 +135,36 @@ async function run() {
         });
       } catch (error) {
         res.status(500).send({ success: false, message: error.message });
+      }
+    });
+    // Get user's joined challenge details
+    app.get("/user-challenges/:userId/:challengeId", async (req, res) => {
+      try {
+        const { userId, challengeId } = req.params;
+
+        const activity = await userChallengesCollection.findOne({
+          userId: userId,
+          _id: new ObjectId(challengeId),
+        });
+
+        if (!activity)
+          return res.status(404).json({
+            success: false,
+            message: "User has not joined this challenge",
+          });
+
+        // Also get challenge details
+        const challenge = await challengesCollection.findOne({
+          _id: new ObjectId(activity.challengeId),
+        });
+
+        res.json({
+          success: true,
+          data: { ...activity, challengeDetails: challenge },
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
       }
     });
 
