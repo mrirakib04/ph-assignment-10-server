@@ -44,6 +44,7 @@ async function run() {
     const usersCollection = database.collection("users");
     const challengesCollection = database.collection("challenges");
     const userChallengesCollection = database.collection("userChallenges");
+    const eventsCollection = database.collection("events");
 
     // READING
     // Get all challenges
@@ -222,6 +223,46 @@ async function run() {
         res.status(500).json({
           success: false,
           message: "Failed to fetch joined challenge",
+          error: error.message,
+        });
+      }
+    });
+    // GET stats home
+    app.get("/api/challenges/stats", async (req, res) => {
+      try {
+        const result = await challengesCollection
+          .aggregate([
+            {
+              $group: {
+                totalParticipants: { $sum: { $ifNull: ["$participants", 0] } },
+                totalPlasticSaved: { $sum: { $ifNull: ["$impactValue", 0] } },
+                // totalCO2Saved: { $sum: { $ifNull: ["$co2Saved", 0] } },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                totalParticipants: 1,
+                totalPlasticSaved: 1,
+                // totalCO2Saved: 1,
+              },
+            },
+          ])
+          .toArray();
+
+        res.json({
+          success: true,
+          data: result[0] || {
+            totalParticipants: 0,
+            totalPlasticSaved: 0,
+            totalCO2Saved: 0,
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching challenge stats:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch challenge stats",
           error: error.message,
         });
       }
