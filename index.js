@@ -11,7 +11,7 @@ const app = express();
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://mrirakib-ph-assignment-10.netlify.app"],
     credentials: true,
   })
 );
