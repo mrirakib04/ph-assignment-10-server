@@ -167,6 +167,65 @@ async function run() {
         res.status(500).json({ success: false, message: error.message });
       }
     });
+    // GET single joined challenge by its _id (aggregate)
+    app.get("/joined/challenges/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const joinedChallenge = await userChallengesCollection
+          .aggregate([
+            {
+              $match: { _id: new ObjectId(id) },
+            },
+            {
+              $lookup: {
+                from: "challenges",
+                localField: "challengeId",
+                foreignField: "_id",
+                as: "challengeDetails",
+              },
+            },
+            {
+              $unwind: "$challengeDetails",
+            },
+            {
+              $project: {
+                _id: 1,
+                userId: 1,
+                status: 1,
+                progress: 1,
+                joinDate: 1,
+                "challengeDetails._id": 1,
+                "challengeDetails.title": 1,
+                "challengeDetails.category": 1,
+                "challengeDetails.description": 1,
+                "challengeDetails.duration": 1,
+                "challengeDetails.target": 1,
+                "challengeDetails.impactMetric": 1,
+                "challengeDetails.startDate": 1,
+                "challengeDetails.endDate": 1,
+                "challengeDetails.imageUrl": 1,
+                "challengeDetails.updatedOn": 1,
+              },
+            },
+          ])
+          .next();
+
+        if (!joinedChallenge)
+          return res
+            .status(404)
+            .json({ success: false, message: "Joined challenge not found" });
+
+        res.json({ success: true, data: joinedChallenge });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch joined challenge",
+          error: error.message,
+        });
+      }
+    });
 
     // POSTING
     // Challenges
