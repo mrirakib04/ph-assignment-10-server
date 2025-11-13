@@ -283,6 +283,40 @@ async function run() {
         res.status(500).json({ success: false, message: error.message });
       }
     });
+    // UPDATE Challenge Info
+    app.patch("/challenges/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        // Add/replace updatedOn field
+        updateData.updatedOn = new Date();
+
+        const result = await challengesCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateData }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Challenge not found",
+          });
+        }
+
+        res.json({
+          success: true,
+          message: "Challenge updated successfully",
+        });
+      } catch (error) {
+        console.error("Error updating challenge:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to update challenge",
+          error: error.message,
+        });
+      }
+    });
 
     // DELETING
     // Delete challenge
