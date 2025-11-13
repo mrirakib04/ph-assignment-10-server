@@ -45,6 +45,7 @@ async function run() {
     const challengesCollection = database.collection("challenges");
     const userChallengesCollection = database.collection("userChallenges");
     const eventsCollection = database.collection("events");
+    const tipsCollection = database.collection("tips");
 
     // READING
     // Get all challenges
@@ -284,6 +285,27 @@ async function run() {
         res.status(500).send({
           success: false,
           message: "Failed to fetch events",
+          error: error.message,
+        });
+      }
+    });
+    // GET - 5 recent tips
+    app.get("/tips", async (req, res) => {
+      try {
+        const tips = await tipsCollection
+          .find()
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .toArray();
+        res.send({
+          success: true,
+          count: tips.length,
+          data: tips,
+        });
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch tips",
           error: error.message,
         });
       }
