@@ -267,6 +267,27 @@ async function run() {
         });
       }
     });
+    // Get 6 events (limit)
+    app.get("/events", async (req, res) => {
+      try {
+        const events = await eventsCollection
+          .find()
+          .sort({ date: 1 })
+          .limit(6)
+          .toArray();
+        res.send({
+          success: true,
+          count: events.length,
+          data: events,
+        });
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch events",
+          error: error.message,
+        });
+      }
+    });
 
     // POSTING
     // Challenges
