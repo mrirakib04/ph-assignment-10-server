@@ -310,6 +310,29 @@ async function run() {
         });
       }
     });
+    // Get 6 recent challenges sorted by createdDate descending
+    app.get("/recent/challenges", async (req, res) => {
+      try {
+        const recentChallenges = await challengesCollection
+          .find()
+          .sort({ createdDate: -1 })
+          .limit(6)
+          .toArray();
+
+        res.send({
+          success: true,
+          count: recentChallenges.length,
+          data: recentChallenges,
+        });
+      } catch (error) {
+        console.error("Error fetching recent challenges:", error);
+        res.status(500).send({
+          success: false,
+          message: "Failed to fetch recent challenges",
+          error: error.message,
+        });
+      }
+    });
 
     // POSTING
     // Challenges
