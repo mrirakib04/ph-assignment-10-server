@@ -78,6 +78,9 @@ async function run() {
     app.get("/challenges/:id", async (req, res) => {
       try {
         const { id } = req.params;
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: "Invalid ID" });
+        }
         const challenge = await challengesCollection.findOne({
           _id: new ObjectId(id),
         });
@@ -228,35 +231,33 @@ async function run() {
         });
       }
     });
-    // GET stats home
+    // GET simplified stats for HeroBanner
     app.get("/api/challenges/stats", async (req, res) => {
       try {
-        const result = await challengesCollection
+        // মোট challenges count
+        const totalChallenges = await challengesCollection.countDocuments();
+
+        // মোট participants sum
+        const aggResult = await challengesCollection
           .aggregate([
             {
               $group: {
+                _id: null,
                 totalParticipants: { $sum: { $ifNull: ["$participants", 0] } },
-                totalPlasticSaved: { $sum: { $ifNull: ["$impactValue", 0] } },
-                // totalCO2Saved: { $sum: { $ifNull: ["$co2Saved", 0] } },
-              },
-            },
-            {
-              $project: {
-                _id: 0,
-                totalParticipants: 1,
-                totalPlasticSaved: 1,
-                // totalCO2Saved: 1,
               },
             },
           ])
           .toArray();
 
+        const totalParticipants = aggResult[0]?.totalParticipants || 0;
+
+        // Response
         res.json({
           success: true,
-          data: result[0] || {
-            totalParticipants: 0,
-            totalPlasticSaved: 0,
-            totalCO2Saved: 0,
+          data: {
+            totalParticipants,
+            totalChallenges,
+            weeklyImpact: 20, // static value
           },
         });
       } catch (error) {
@@ -268,6 +269,7 @@ async function run() {
         });
       }
     });
+
     // Get 6 events (limit)
     app.get("/events", async (req, res) => {
       try {
