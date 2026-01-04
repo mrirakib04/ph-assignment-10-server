@@ -11,7 +11,10 @@ const app = express();
 // middleware
 app.use(
   cors({
-    origin: ["https://mrirakib-ph-assignment-10.netlify.app"],
+    origin: [
+      "https://mrirakib-ph-assignment-10.netlify.app",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
@@ -32,12 +35,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
 
     // Connections
     const database = client.db(process.env.DB_NAME);
@@ -236,6 +239,8 @@ async function run() {
       try {
         // মোট challenges count
         const totalChallenges = await challengesCollection.countDocuments();
+        const totalUserChallenges =
+          await userChallengesCollection.countDocuments();
 
         // মোট participants sum
         const aggResult = await challengesCollection
@@ -257,7 +262,7 @@ async function run() {
           data: {
             totalParticipants,
             totalChallenges,
-            weeklyImpact: 20, // static value
+            totalUserChallenges,
           },
         });
       } catch (error) {
